@@ -28,8 +28,28 @@ def fitness_scores(random_populations):
 
     return score
 
-def selection():
-    pass
+def selection(scores):
+
+    max_score = max(scores)
+
+    normalized_scores = []
+    for score in scores:
+        normalized_scores.append(max_score - score + 1)
+
+    total_score = sum(normalized_scores)
+    probabilities = []
+    for score in normalized_scores:
+        probabilities.append(score/total_score)
+    
+    # generates a random float value
+    r = random.random()
+
+    current = 0
+
+    for i in range(len(probabilities)):
+        current = current + probabilities[i]
+        if current >= r:
+            return probabilities[i]
 
 def crossover():
     pass
@@ -49,6 +69,10 @@ def main():
 
     random_populations = population(5)
     print(random_populations)
-    print(fitness_scores(random_populations))
+    fitness = fitness_scores(random_populations)
+    print(fitness)
+    print(selection(fitness))
+
+
 
 main()
