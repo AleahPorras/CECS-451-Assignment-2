@@ -40,10 +40,14 @@ def fitness_scores(random_populations):
 
     return inverted_scores
 
+###------------------------------------------------------------------------###
+## Chooses the chromosomes in the current generation to be the parents
+# Status: Done
 def selection(inverted_scores, population):
     
     parents = []
 
+    # gets the total fitness of all chromosomes
     total_fitness = 0
     for i in inverted_scores:
         # adds all inverted scores together
@@ -54,32 +58,45 @@ def selection(inverted_scores, population):
     for score in inverted_scores:
         probabilities.append(score/total_fitness)
 
+    # follows the example in lecture, uses list instead of using if/elif statements
     cumulative_probability = []
     current = 0
     for i in probabilities:
+        # adds current probability
         current += i
+        # then appends probability to the list
         cumulative_probability.append(current)
 
     for _ in range(len(population)):
         # generate the random number between 0 and 1
         r = round(random.random(), 2)
+        # takes corresponding chromosome and its cumulative probability
         for j, cumulative in enumerate(cumulative_probability):
+            # when the random value is less than randomized float,
             if r <= cumulative:
+                # add choosen chromosome to the parents list
                 parents.append(population[j])
                 break
 
     return parents
 
+###------------------------------------------------------------------------###
+## Takes the two parent chromosomes and combine them together to create children
+# Status: Done
 def crossover(first_parent, second_parent):
 
     # selects a random point from the parent, cannot be first or last column
     crossover_point = random.randint(1, 4)
 
+    # combines the two halfs of the parents to create the children
     next_generation_1 = first_parent[:crossover_point] + second_parent[crossover_point:]
     next_generation_2 = second_parent[:crossover_point] + first_parent[crossover_point:]
 
     return next_generation_1, next_generation_2
 
+###------------------------------------------------------------------------###
+## Used for genetic diversity, changes a random number in the children's chromosomes
+# Status: Done
 def mutation(chromosome):
     # generates a random position to mutate
     mutated_gene = random.randint(0, 4)
@@ -87,58 +104,76 @@ def mutation(chromosome):
     random_value = str(random.randint(0, 4))
 
     chromosome_list = list(chromosome)
+    # assigns randomized number to randomized position
     chromosome_list[mutated_gene] = random_value
-    return "".join(chromosome_list)
 
+    # returns mutated chromosomes as a list
+    return "".join(chromosome_list)
 
 def main():
 
+    # predetermined times the program should loop
     total_generation = 100
     max_fitness = (5*4)/2
 
     starting_time = time.time()
 
-    # ending_time = time.time()
-    # creates 8 random states
-
+    # initilizes empty board and fitness levels
     best_board = None
     best_fitness = -1
 
+    # creates 8 random states
     random_populations = population(8)
 
-    for generation in range(total_generation):
+    # for generation in range(total_generation):
+    while True:
 
+        # calculates inverted fitness scores for each state
         fitness = fitness_scores(random_populations)
 
         for i, chromosome in enumerate(random_populations):
+            # in the case where the inverted fitness score is greater than the best_fitness
             if fitness[i] > best_fitness:
+                # assign inverted fitness to best_fitness and the corresponding chromosome to the best board
                 best_fitness = fitness[i]
                 best_board = chromosome
 
+            # in the case that the inverted fitness is the same as the max_fitness (aka best score)
             if fitness[i] == max_fitness:
                 ending_time = time.time()
+                # create a new board
                 best_board = Board(5)
+                # assign each chromosome to the new board
                 best_board.decode(chromosome)
 
                 print(f"Running time: {((ending_time - starting_time) * 1000):.2f}ms")
                 best_board.print_map()
                 return
 
+        # randomly selects the best genes based on each states probability
         gene_pool = selection(fitness, random_populations)
 
         new_generation = []
 
+        # iterates through the 8 states
         for i in range(0,7,2):
+            # assigns chromosome in current position as the first parent
             first_parent = gene_pool[i]
+            # checks if the current position is still less than 8 states
             if i+1 < len(gene_pool):
+                # assigns next chromosome as the second parent
                 second_parent = gene_pool[i+1]
             else:
+                # if no other chromosome is available, loop back to first chromosome
                 second_parent = gene_pool[0]
 
+            # creates children from the two parents
             first_child, second_child = crossover(first_parent, second_parent)
+            # mutate the children to expand gene pool
             new_generation.append(mutation(first_child))
             new_generation.append(mutation(second_child))
             
+        # assigns the new mutated chromosomes to the population
         random_populations = new_generation
 
 main()
